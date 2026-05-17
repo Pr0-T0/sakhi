@@ -17,7 +17,19 @@ async function DashboardContent() {
     redirect("/auth/login");
   }
 
-  return <DashboardShell />;
+  return (
+    <div>
+
+      <h1 className="text-5xl font-bold">
+        Dashboard
+      </h1>
+
+      <p className="mt-3 text-lg text-gray-500">
+        Welcome to your dashboard.
+      </p>
+
+    </div>
+  )
 }
 
 export default function DashboardPage() {
