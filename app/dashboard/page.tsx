@@ -1,32 +1,29 @@
-import {
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
-import { AppSidebar } from "@/components/dashboard/app-sidebar";
+import { createClient } from "@/lib/supabase/server";
+
+import DashboardShell from "@/components/dashboard/dashboard-shell";
+
+async function DashboardContent() {
+
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  return <DashboardShell />;
+}
 
 export default function DashboardPage() {
   return (
-    <SidebarProvider>
-      
-      <AppSidebar />
-
-      <main className="flex-1 p-6">
-        
-        <SidebarTrigger />
-
-        <div className="mt-6 ">
-          <h1 className="text-3xl font-bold">
-            Dashboard
-          </h1>
-
-          <p className="text-muted-foreground  mt-2">
-            Welcome to Sakhi Dashboard.
-          </p>
-        </div>
-
-      </main>
-
-    </SidebarProvider>
+    <Suspense fallback={<div>Loading...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }
