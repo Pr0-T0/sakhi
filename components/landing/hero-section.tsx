@@ -31,6 +31,7 @@ export default function HeroSection() {
             alt="Scan Product"
             width={600}
             height={1000}
+            loading="eager"
             className="w-full h-auto object-contain rounded-[24px]"
           />
         </div>
@@ -42,6 +43,7 @@ export default function HeroSection() {
             alt="AI Insights"
             width={600}
             height={1000}
+            loading="eager"
             className="w-full h-auto object-contain rounded-[24px]"
           />
         </div>
@@ -53,6 +55,7 @@ export default function HeroSection() {
             alt="Safer Alternatives"
             width={600}
             height={1000}
+            loading="eager"
             className="w-full h-auto object-contain rounded-[24px]"
           />
         </div>
@@ -64,6 +67,7 @@ export default function HeroSection() {
             alt="Tracking"
             width={600}
             height={1000}
+            loading="eager"
             className="w-full h-auto object-contain rounded-[24px]"
           />
         </div>
