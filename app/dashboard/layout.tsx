@@ -40,24 +40,14 @@ export default function DashboardLayout({
       icon: ScanLine,
     },
     {
-      title: "History",
-      href: "/dashboard/history",
-      icon: History,
-    },
-    {
-      title: "Alternatives",
-      href: "/dashboard/alternatives",
-      icon: ShieldCheck,
-    },
-    {
-      title: "Ingredients",
-      href: "/dashboard/ingredients",
+      title: "Scan Lab Reports",
+      href: "/dashboard/lab-reports",
       icon: FlaskConical,
     },
     {
-      title: "AI Insights",
-      href: "/dashboard/insights",
-      icon: Sparkles,
+      title: "News",
+      href: "/dashboard/news",
+      icon: ShieldCheck,
     },
   ]
 
