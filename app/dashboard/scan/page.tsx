@@ -1,5 +1,6 @@
 "use client"
 
+import { saveProductScan } from "@/lib/save-product-scan"
 import * as React from "react"
 
 import {
@@ -253,6 +254,8 @@ export default function ScanPage() {
       const data = await response.json()
 
       setResult(data as ScanResult)
+      //supabase table update
+      await saveProductScan(data as ScanResult)
 
     } catch (error) {
 

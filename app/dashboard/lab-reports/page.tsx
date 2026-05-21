@@ -10,6 +10,7 @@ import {
   FileText,
   HeartPulse,
 } from "lucide-react"
+import { saveLabReport } from "@/lib/save-lab-reports"
 
 type LabReportResult = {
   success?: boolean
@@ -124,6 +125,8 @@ export default function LabReportScanner() {
       const data = await response.json()
 
       setResult(data)
+      //supabase update
+      await saveLabReport(data)
 
     } catch (error) {
 
