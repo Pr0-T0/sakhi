@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+
 import { redirect } from "next/navigation"
 
 import {
@@ -8,16 +9,26 @@ import {
   FlaskConical,
 } from "lucide-react"
 
-import { createClient } from "@/lib/supabase/server"
+import { createClient }
+from "@/lib/supabase/server"
 
 import {
   Card,
   CardContent,
 } from "@/components/ui/card"
 
+import DashboardClient
+from "./dashboard-client"
+
+import {
+  generateProductAnalytics,
+} from "@/lib/analytics/generate-product-analytics"
+import InsightsCard from "./insights-card"
+
 async function DashboardContent() {
 
-  const supabase = await createClient()
+  const supabase =
+    await createClient()
 
   const {
     data: { user },
@@ -28,89 +39,51 @@ async function DashboardContent() {
   }
 
   // FETCH PRODUCT SCANS
+
   const {
     data: productScans,
+    error,
   } = await supabase
     .from("product_scans")
-    .select("*")
+    .select(`
+      id,
+      product_name,
+      brand,
+      category,
+      overall_score,
+      toxicity_score,
+      toxicity_level,
+      hormonal_score,
+      hormonal_level,
+      nutrition_score,
+      nutrition_level,
+      processed_score,
+      processed_level,
+      scanned_at
+    `)
     .eq("user_id", user.id)
+    .order("scanned_at", {
+      ascending: true,
+    })
 
-  const scans = productScans ?? []
-
-  // TOTALS
-  const totalScans = scans.length
-
-  const highRiskProducts =
-    scans.filter(
-      (item) =>
-        item.toxicity_level
-          ?.toLowerCase()
-          .includes("high")
-    ).length
-
-  const safeProducts =
-    scans.filter(
-      (item) =>
-        item.toxicity_level
-          ?.toLowerCase()
-          .includes("low")
-    ).length
-
-  // AVERAGES
-  function average(
-    values: (number | null)[]
-  ) {
-
-    if (values.length === 0) {
-      return 0
-    }
-
-    const total = values.reduce(
-      (acc: number, value) =>
-        acc + (value ?? 0),
-      0
-    )
-
-    return Math.round(
-      total / values.length
-    )
+  if (error) {
+    console.error(error)
   }
 
-  const avgOverall = average(
-    scans.map(
-      (item) => item.overall_score
-    )
-  )
+  const scans =
+    productScans ?? []
 
-  const avgToxicity = average(
-    scans.map(
-      (item) => item.toxicity_score
-    )
-  )
+  // GENERATE ANALYTICS
 
-  const avgHormonal = average(
-    scans.map(
-      (item) => item.hormonal_score
-    )
-  )
-
-  const avgNutrition = average(
-    scans.map(
-      (item) => item.nutrition_score
-    )
-  )
-
-  const avgProcessed = average(
-    scans.map(
-      (item) => item.processed_score
-    )
-  )
+  const stats =
+    generateProductAnalytics(scans)
 
   return (
 
     <div className="space-y-8 p-8">
 
       {/* HEADER */}
+
       <div>
 
         <h1 className="text-5xl font-bold">
@@ -118,13 +91,19 @@ async function DashboardContent() {
         </h1>
 
         <p className="mt-3 text-lg text-gray-500">
-          Product analysis overview and analytics.
+          Product analysis overview
+          and analytics.
         </p>
 
       </div>
 
-      {/* TOTAL CARDS */}
+      <InsightsCard stats={stats}/>
+
+      {/* TOP STATS */}
+
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+
+        {/* TOTAL SCANS */}
 
         <Card className="rounded-3xl">
 
@@ -139,7 +118,7 @@ async function DashboardContent() {
                 </p>
 
                 <h2 className="mt-2 text-5xl font-bold">
-                  {totalScans}
+                  {stats.totalScans}
                 </h2>
 
               </div>
@@ -156,6 +135,8 @@ async function DashboardContent() {
 
         </Card>
 
+        {/* HIGH RISK */}
+
         <Card className="rounded-3xl">
 
           <CardContent className="p-6">
@@ -169,7 +150,7 @@ async function DashboardContent() {
                 </p>
 
                 <h2 className="mt-2 text-5xl font-bold text-red-500">
-                  {highRiskProducts}
+                  {stats.highRiskProducts}
                 </h2>
 
               </div>
@@ -186,6 +167,8 @@ async function DashboardContent() {
 
         </Card>
 
+        {/* SAFE PRODUCTS */}
+
         <Card className="rounded-3xl">
 
           <CardContent className="p-6">
@@ -199,7 +182,7 @@ async function DashboardContent() {
                 </p>
 
                 <h2 className="mt-2 text-5xl font-bold text-emerald-500">
-                  {safeProducts}
+                  {stats.safeProducts}
                 </h2>
 
               </div>
@@ -216,6 +199,8 @@ async function DashboardContent() {
 
         </Card>
 
+        {/* AVG OVERALL */}
+
         <Card className="rounded-3xl">
 
           <CardContent className="p-6">
@@ -229,7 +214,7 @@ async function DashboardContent() {
                 </p>
 
                 <h2 className="mt-2 text-5xl font-bold text-blue-600">
-                  {avgOverall}
+                  {stats.avgOverall}
                 </h2>
 
               </div>
@@ -248,74 +233,11 @@ async function DashboardContent() {
 
       </div>
 
-      {/* AVERAGE SCORES */}
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+      {/* CHARTS */}
 
-        <Card className="rounded-3xl">
-
-          <CardContent className="p-6">
-
-            <p className="text-sm text-gray-500">
-              Average Toxicity
-            </p>
-
-            <h2 className="mt-3 text-4xl font-bold">
-              {avgToxicity}
-            </h2>
-
-          </CardContent>
-
-        </Card>
-
-        <Card className="rounded-3xl">
-
-          <CardContent className="p-6">
-
-            <p className="text-sm text-gray-500">
-              Average Hormonal
-            </p>
-
-            <h2 className="mt-3 text-4xl font-bold">
-              {avgHormonal}
-            </h2>
-
-          </CardContent>
-
-        </Card>
-
-        <Card className="rounded-3xl">
-
-          <CardContent className="p-6">
-
-            <p className="text-sm text-gray-500">
-              Average Nutrition
-            </p>
-
-            <h2 className="mt-3 text-4xl font-bold">
-              {avgNutrition}
-            </h2>
-
-          </CardContent>
-
-        </Card>
-
-        <Card className="rounded-3xl">
-
-          <CardContent className="p-6">
-
-            <p className="text-sm text-gray-500">
-              Average Processed
-            </p>
-
-            <h2 className="mt-3 text-4xl font-bold">
-              {avgProcessed}
-            </h2>
-
-          </CardContent>
-
-        </Card>
-
-      </div>
+      <DashboardClient
+        stats={stats}
+      />
 
     </div>
 
@@ -326,7 +248,13 @@ export default function DashboardPage() {
 
   return (
 
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="p-8">
+          Loading Dashboard...
+        </div>
+      }
+    >
 
       <DashboardContent />
 
